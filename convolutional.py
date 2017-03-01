@@ -1,4 +1,3 @@
-import os
 import sys
 import time
 
@@ -16,7 +15,7 @@ IMAGE_WIDTH = 320
 
 BATCH_SIZE = 64
 EVAL_BATCH_SIZE = 64
-EVAL_FREQUENCY = 100
+EVAL_FREQUENCY = 1
 NUM_EPOCHS = 10
 
 ACTION_COL = 5
@@ -29,8 +28,6 @@ NUM_CHANNELS = 1
 SEED = 66478
 DTYPE = tf.float32
 NUM_LABELS = 2
-
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 
 
 def getFilePath(filename):
@@ -90,11 +87,11 @@ def get_shape(variable, name, type='tf'):
 
 def error_rate(predictions, labels):
   """Return the error rate based on dense predictions and sparse labels."""
-  print("### Computing error ###")
-  get_shape(predictions, 'predictions', type='np')
-  get_shape(labels, 'labels', type='np')
-  print(predictions)
-  print(labels)
+  # print("### Computing error ###")
+  # get_shape(predictions, 'predictions', type='np')
+  # get_shape(labels, 'labels', type='np')
+  # print(predictions)
+  # print(labels)
   return 100.0 - (
       100.0 *
       np.sum(np.argmax(predictions, 1) == labels) /
@@ -110,10 +107,11 @@ def main(_):
     data = extract_data(train_data_filepath)
     labels = extract_data(train_labels_filepath)
 
+
     # Process data
-    # data, labels = process_data(data, labels)
-    train_data, train_labels = process_data(data, labels)
-    # train_data, train_labels, val_data, val_labels = train_val_split(data, labels)
+    data, labels = process_data(data, labels)
+    train_data, train_labels, val_data, val_labels = train_val_split(data, labels)
+    print(np.mean(train_labels))
 
     train_size = train_labels.shape[0]
 
@@ -126,7 +124,7 @@ def main(_):
                                        shape=[BATCH_SIZE,])
     get_shape(train_labels_node, 'train_labels_node')
     eval_data = tf.placeholder(DTYPE,
-                               shape=(EVAL_BATCH_SIZE, IMAGE_HEIGHT, IMAGE_WIDTH, NUM_CHANNELS))
+                               shape=(BATCH_SIZE, IMAGE_HEIGHT, IMAGE_WIDTH, NUM_CHANNELS))
     get_shape(train_labels_node, 'train_labels_node')
 
     # Create parameter variables
@@ -215,10 +213,10 @@ def main(_):
         labels=train_labels_node, logits=logits))
 
     # L2 regularization for the fully connected parameters.
-    regularizers = (tf.nn.l2_loss(fc1_weights) + tf.nn.l2_loss(fc1_biases) +
-                    tf.nn.l2_loss(fc2_weights) + tf.nn.l2_loss(fc2_biases))
-    # Add the regularization term to the loss.
-    loss += 5e-4 * regularizers
+    # regularizers = (tf.nn.l2_loss(fc1_weights) + tf.nn.l2_loss(fc1_biases) +
+    #                 tf.nn.l2_loss(fc2_weights) + tf.nn.l2_loss(fc2_biases))
+    # # Add the regularization term to the loss.
+    # loss += 5e-4 * regularizers
 
     # Optimizer: set up a variable that's incremented once per batch and
     # controls the learning rate decay.
@@ -235,8 +233,11 @@ def main(_):
                                             .minimize(loss, global_step=batch)
 
     # Predictions for the current training minibatch.
-    train_prediction = tf.nn.softmax(logits)
-
+    probs = tf.nn.softmax(logits)
+    yhat = tf.argmax(probs, axis=1)
+    bools = tf.equal(train_labels_node, yhat)
+    casted = tf.cast(bools, tf.float32)
+    accuracy = tf.reduce_mean(casted)
 
     # Create a local session to run the training.
     start_time = time.time()
@@ -256,19 +257,14 @@ def main(_):
             feed_dict = {train_data_node: batch_data,
                          train_labels_node: batch_labels}
             # Run the optimizer to update weights.
-            sess.run(optimizer, feed_dict=feed_dict)
             # print some extra information once reach the evaluation frequency
+            # fetch some extra nodes' data
+            _, l, lr, yhat2, acc, bools2, casted2 = sess.run([optimizer, loss, learning_rate, yhat, accuracy, bools, casted], feed_dict=feed_dict)
+            elapsed_time = time.time() - start_time
+            start_time = time.time()
+            # acc = 100 - error_rate(predictions, batch_labels)
             if step % EVAL_FREQUENCY == 0:
-                # fetch some extra nodes' data
-                l, lr, predictions = sess.run([loss, learning_rate, train_prediction],
-                                              feed_dict=feed_dict)
-                elapsed_time = time.time() - start_time
-                start_time = time.time()
-                print('Step %d (epoch %.2f), %.1f ms' %
-                      (step, float(step) * BATCH_SIZE / train_size,
-                       1000 * elapsed_time / EVAL_FREQUENCY))
-                print('Minibatch loss: %.3f, learning rate: %.6f' % (l, lr))
-                print('Minibatch error: %.1f%%' % error_rate(predictions, batch_labels))
+                print('Step %i (Epoch %0.2f): Loss: %0.4e\t lr: %0.2e\t Accuracy: %0.4f' % (step, float(step) * BATCH_SIZE / train_size, l, lr, acc))
                 sys.stdout.flush()
 
 
