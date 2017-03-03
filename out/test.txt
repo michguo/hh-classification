@@ -1,0 +1,10 @@
+val_acc: 0.8968, lr: 1.00e-02, loss: 6.4485e+01, train_acc: 0.500000, (epoch 0.00), 6.2 s
+val_acc: 0.8968, lr: 1.00e-02, loss: 5.8561e-02, train_acc: 1.000000, (epoch 0.11), 0.3 s
+val_acc: 0.8968, lr: 1.00e-02, loss: 4.1235e-02, train_acc: 1.000000, (epoch 0.21), 0.3 s
+val_acc: 0.8968, lr: 1.00e-02, loss: 9.0192e-01, train_acc: 0.218750, (epoch 0.32), 0.3 s
+val_acc: 0.8968, lr: 1.00e-02, loss: 4.8162e-02, train_acc: 1.000000, (epoch 0.43), 0.3 s
+val_acc: 0.8968, lr: 1.00e-02, loss: 3.1966e-02, train_acc: 1.000000, (epoch 0.53), 0.3 s
+val_acc: 0.8968, lr: 1.00e-02, loss: 2.3416e+00, train_acc: 0.281250, (epoch 0.64), 0.3 s
+val_acc: 0.8968, lr: 1.00e-02, loss: 3.4288e-01, train_acc: 1.000000, (epoch 0.75), 0.3 s
+val_acc: 0.8968, lr: 1.00e-02, loss: 3.9947e-02, train_acc: 1.000000, (epoch 0.85), 0.3 s
+val_acc: 0.8968, lr: 1.00e-02, loss: 2.7985e-02, train_acc: 1.000000, (epoch 0.96), 0.3 s

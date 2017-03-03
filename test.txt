@@ -1,0 +1,2 @@
+val_acc: 0.8968, lr: 1.00e-02, loss: 6.4485e+01, train_acc: 0.500000, (epoch 0.00), 6.7 s
+val_acc: 0.8968, lr: 1.00e-02, loss: 5.8561e-02, train_acc: 1.000000, (epoch 0.11), 0.3 s
